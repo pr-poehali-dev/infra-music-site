@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import PlayerBar from "@/components/PlayerBar";
 import MoodModal from "@/components/MoodModal";
@@ -17,12 +17,14 @@ export interface Track {
   artist: string;
   duration: string;
   mood?: string;
+  url?: string;
 }
 
 export interface PlayerState {
   track: Track | null;
   isPlaying: boolean;
-  progress: number;
+  currentTime: number;
+  duration: number;
   volume: number;
 }
 
@@ -36,9 +38,47 @@ export default function App() {
   const [player, setPlayer] = useState<PlayerState>({
     track: null,
     isPlaying: false,
-    progress: 35,
+    currentTime: 0,
+    duration: 0,
     volume: 70,
   });
+
+  const audioRef = useRef<HTMLAudioElement>(new Audio());
+
+  // Sync audio with player state
+  useEffect(() => {
+    const audio = audioRef.current;
+    audio.volume = player.volume / 100;
+  }, [player.volume]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!player.track?.url) return;
+    if (audio.src !== player.track.url) {
+      audio.src = player.track.url;
+      audio.load();
+    }
+    if (player.isPlaying) {
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
+  }, [player.track, player.isPlaying]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    const onTime = () => setPlayer(p => ({ ...p, currentTime: audio.currentTime }));
+    const onDuration = () => setPlayer(p => ({ ...p, duration: audio.duration || 0 }));
+    const onEnded = () => setPlayer(p => ({ ...p, isPlaying: false, currentTime: 0 }));
+    audio.addEventListener("timeupdate", onTime);
+    audio.addEventListener("loadedmetadata", onDuration);
+    audio.addEventListener("ended", onEnded);
+    return () => {
+      audio.removeEventListener("timeupdate", onTime);
+      audio.removeEventListener("loadedmetadata", onDuration);
+      audio.removeEventListener("ended", onEnded);
+    };
+  }, []);
 
   // Swipe detection
   const touchStartX = useRef<number | null>(null);
@@ -53,7 +93,6 @@ export default function App() {
     if (touchStartX.current === null || touchStartY.current === null) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
-    // Only horizontal swipes (angle < 45°)
     if (dy > Math.abs(dx) * 0.8) return;
     if (dx > 48 && touchStartX.current < 40) setSidebarOpen(true);
     if (dx < -48) setSidebarOpen(false);
@@ -68,11 +107,16 @@ export default function App() {
   };
 
   const playTrack = (track: Track) => {
-    setPlayer(p => ({ ...p, track, isPlaying: true }));
+    setPlayer(p => ({ ...p, track, isPlaying: true, currentTime: 0 }));
   };
 
   const togglePlay = () => {
     setPlayer(p => ({ ...p, isPlaying: !p.isPlaying }));
+  };
+
+  const seek = (time: number) => {
+    audioRef.current.currentTime = time;
+    setPlayer(p => ({ ...p, currentTime: time }));
   };
 
   return (
@@ -125,6 +169,9 @@ export default function App() {
               selectedMood={selectedMood}
               onPlayTrack={playTrack}
               onOpenSidebar={() => setSidebarOpen(true)}
+              currentTrackId={player.track?.id ?? null}
+              isPlaying={player.isPlaying}
+              onTogglePlay={togglePlay}
             />
           )}
           {currentPage === "focus" && (
@@ -155,6 +202,7 @@ export default function App() {
           player={player}
           onTogglePlay={togglePlay}
           onVolumeChange={(v) => setPlayer(p => ({ ...p, volume: v }))}
+          onSeek={seek}
         />
       </div>
 

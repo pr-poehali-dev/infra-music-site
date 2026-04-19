@@ -5,10 +5,26 @@ interface PlayerBarProps {
   player: PlayerState;
   onTogglePlay: () => void;
   onVolumeChange: (v: number) => void;
+  onSeek: (time: number) => void;
 }
 
-export default function PlayerBar({ player, onTogglePlay, onVolumeChange }: PlayerBarProps) {
-  const { track, isPlaying, progress, volume } = player;
+function formatTime(sec: number) {
+  if (!sec || isNaN(sec)) return "0:00";
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+export default function PlayerBar({ player, onTogglePlay, onVolumeChange, onSeek }: PlayerBarProps) {
+  const { track, isPlaying, currentTime, duration, volume } = player;
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!duration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+    onSeek(ratio * duration);
+  };
 
   return (
     <div className="player-bar flex items-center px-6 gap-6 flex-shrink-0" style={{ height: 70 }}>
@@ -61,12 +77,33 @@ export default function PlayerBar({ player, onTogglePlay, onVolumeChange }: Play
             <Icon name="Repeat" size={15} color="white" />
           </button>
         </div>
+
+        {/* Progress bar */}
         <div className="flex items-center gap-3 w-full max-w-sm">
-          <span className="text-xs tabular-nums w-8 text-right" style={{ color: "var(--im-text-muted)" }}>1:24</span>
-          <div className="flex-1 h-px rounded-full relative" style={{ background: "rgba(255,255,255,0.1)" }}>
-            <div className="h-full rounded-full" style={{ width: `${progress}%`, background: "var(--im-yellow)" }} />
+          <span className="text-xs tabular-nums w-8 text-right" style={{ color: "var(--im-text-muted)" }}>
+            {formatTime(currentTime)}
+          </span>
+          <div
+            className="flex-1 h-1 rounded-full relative cursor-pointer group"
+            style={{ background: "rgba(255,255,255,0.1)" }}
+            onClick={handleProgressClick}
+          >
+            <div
+              className="h-full rounded-full transition-all"
+              style={{ width: `${progress}%`, background: "var(--im-yellow)" }}
+            />
+            <div
+              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{
+                left: `${progress}%`,
+                transform: `translateX(-50%) translateY(-50%)`,
+                background: "var(--im-yellow)",
+              }}
+            />
           </div>
-          <span className="text-xs tabular-nums w-8" style={{ color: "var(--im-text-muted)" }}>3:58</span>
+          <span className="text-xs tabular-nums w-8" style={{ color: "var(--im-text-muted)" }}>
+            {formatTime(duration)}
+          </span>
         </div>
       </div>
 
