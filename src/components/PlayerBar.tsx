@@ -6,6 +6,8 @@ interface PlayerBarProps {
   onTogglePlay: () => void;
   onVolumeChange: (v: number) => void;
   onSeek: (time: number) => void;
+  onSkipNext: () => void;
+  onSkipPrev: () => void;
 }
 
 function formatTime(sec: number) {
@@ -15,30 +17,25 @@ function formatTime(sec: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export default function PlayerBar({ player, onTogglePlay, onVolumeChange, onSeek }: PlayerBarProps) {
+export default function PlayerBar({ player, onTogglePlay, onVolumeChange, onSeek, onSkipNext, onSkipPrev }: PlayerBarProps) {
   const { track, isPlaying, currentTime, duration, volume } = player;
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!duration) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const ratio = (e.clientX - rect.left) / rect.width;
-    onSeek(ratio * duration);
+    onSeek((e.clientX - rect.left) / rect.width * duration);
   };
 
   return (
     <div className="player-bar flex items-center px-6 gap-6 flex-shrink-0" style={{ height: 70 }}>
       {/* Track */}
       <div className="flex items-center gap-3 w-52 flex-shrink-0">
-        <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ background: "var(--im-surface2, #1e1e1e)" }}
-        >
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ background: "var(--im-surface2, #1e1e1e)" }}>
           {isPlaying ? (
             <div className="soundbar flex items-end gap-0.5 h-4">
-              {[8, 14, 8, 14, 8].map((h, i) => (
-                <span key={i} style={{ height: `${h}px` }} />
-              ))}
+              {[8, 14, 8, 14, 8].map((h, i) => <span key={i} style={{ height: `${h}px` }} />)}
             </div>
           ) : (
             <Icon name="Music" size={15} color="var(--im-text-muted)" />
@@ -50,7 +47,7 @@ export default function PlayerBar({ player, onTogglePlay, onVolumeChange, onSeek
             <p className="text-xs truncate" style={{ color: "var(--im-text-muted)" }}>{track.artist}</p>
           </div>
         ) : (
-          <p className="text-sm" style={{ color: "var(--im-text-muted)" }}>Не выбрано</p>
+          <p className="text-sm" style={{ color: "var(--im-text-muted)" }}>Выберите трек</p>
         )}
       </div>
 
@@ -60,17 +57,15 @@ export default function PlayerBar({ player, onTogglePlay, onVolumeChange, onSeek
           <button className="opacity-30 hover:opacity-70 transition-opacity">
             <Icon name="Shuffle" size={15} color="white" />
           </button>
-          <button className="opacity-60 hover:opacity-100 transition-opacity">
+          <button onClick={onSkipPrev} className="opacity-60 hover:opacity-100 transition-opacity">
             <Icon name="SkipBack" size={17} color="white" />
           </button>
-          <button
-            onClick={onTogglePlay}
+          <button onClick={onTogglePlay}
             className="w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-105"
-            style={{ background: "var(--im-yellow)" }}
-          >
+            style={{ background: "var(--im-yellow)" }}>
             <Icon name={isPlaying ? "Pause" : "Play"} size={17} color="#000" />
           </button>
-          <button className="opacity-60 hover:opacity-100 transition-opacity">
+          <button onClick={onSkipNext} className="opacity-60 hover:opacity-100 transition-opacity">
             <Icon name="SkipForward" size={17} color="white" />
           </button>
           <button className="opacity-30 hover:opacity-70 transition-opacity">
@@ -78,28 +73,16 @@ export default function PlayerBar({ player, onTogglePlay, onVolumeChange, onSeek
           </button>
         </div>
 
-        {/* Progress bar */}
         <div className="flex items-center gap-3 w-full max-w-sm">
           <span className="text-xs tabular-nums w-8 text-right" style={{ color: "var(--im-text-muted)" }}>
             {formatTime(currentTime)}
           </span>
-          <div
-            className="flex-1 h-1 rounded-full relative cursor-pointer group"
+          <div className="flex-1 h-1 rounded-full relative cursor-pointer group"
             style={{ background: "rgba(255,255,255,0.1)" }}
-            onClick={handleProgressClick}
-          >
-            <div
-              className="h-full rounded-full transition-all"
-              style={{ width: `${progress}%`, background: "var(--im-yellow)" }}
-            />
-            <div
-              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{
-                left: `${progress}%`,
-                transform: `translateX(-50%) translateY(-50%)`,
-                background: "var(--im-yellow)",
-              }}
-            />
+            onClick={handleProgressClick}>
+            <div className="h-full rounded-full" style={{ width: `${progress}%`, background: "var(--im-yellow)" }} />
+            <div className="absolute top-1/2 w-3 h-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ left: `${progress}%`, transform: "translateX(-50%) translateY(-50%)", background: "var(--im-yellow)" }} />
           </div>
           <span className="text-xs tabular-nums w-8" style={{ color: "var(--im-text-muted)" }}>
             {formatTime(duration)}
@@ -110,8 +93,7 @@ export default function PlayerBar({ player, onTogglePlay, onVolumeChange, onSeek
       {/* Volume */}
       <div className="flex items-center gap-2.5 w-32 flex-shrink-0">
         <Icon name={volume > 0 ? "Volume2" : "VolumeX"} size={14} color="var(--im-text-muted)" />
-        <input
-          type="range" min={0} max={100} value={volume}
+        <input type="range" min={0} max={100} value={volume}
           onChange={(e) => onVolumeChange(Number(e.target.value))}
           className="progress-bar flex-1"
           style={{ background: `linear-gradient(to right, var(--im-yellow) ${volume}%, rgba(255,255,255,0.08) ${volume}%)` }}

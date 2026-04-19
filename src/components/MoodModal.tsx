@@ -60,18 +60,12 @@ export default function MoodModal({ onSelect }: MoodModalProps) {
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
       style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(10px)" }}
     >
-      <div className="w-full max-w-md animate-scale-in">
+      <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-6">
-          <div
-            className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
-            style={{ background: "var(--im-yellow)" }}
-          >
-            <Icon name="Headphones" size={22} color="#000" />
-          </div>
           <h1 className="font-oswald text-2xl font-bold text-white mb-1">ИнфраМузыка</h1>
           <p className="text-sm" style={{ color: "var(--im-text-muted)" }}>
-            Персональный подбор музыки
+            Ответь на 2 вопроса — подберём музыку
           </p>
         </div>
 
@@ -118,7 +112,7 @@ export default function MoodModal({ onSelect }: MoodModalProps) {
               })}
             </div>
             <p className="text-center text-xs mt-5" style={{ color: "var(--im-text-muted)" }}>
-              1 / 2 — выбери активность
+              Шаг 1 из 2
             </p>
           </div>
         )}
@@ -167,7 +161,7 @@ export default function MoodModal({ onSelect }: MoodModalProps) {
               })}
             </div>
             <p className="text-center text-xs mt-5" style={{ color: "var(--im-text-muted)" }}>
-              2 / 2 — выбери настроение → откроется плейлист
+              Шаг 2 из 2
             </p>
           </div>
         )}

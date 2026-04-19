@@ -22,6 +22,7 @@ export interface Track {
 
 export interface PlayerState {
   track: Track | null;
+  queue: Track[];
   isPlaying: boolean;
   currentTime: number;
   duration: number;
@@ -37,6 +38,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [player, setPlayer] = useState<PlayerState>({
     track: null,
+    queue: [],
     isPlaying: false,
     currentTime: 0,
     duration: 0,
@@ -45,10 +47,8 @@ export default function App() {
 
   const audioRef = useRef<HTMLAudioElement>(new Audio());
 
-  // Sync audio with player state
   useEffect(() => {
-    const audio = audioRef.current;
-    audio.volume = player.volume / 100;
+    audioRef.current.volume = player.volume / 100;
   }, [player.volume]);
 
   useEffect(() => {
@@ -69,7 +69,14 @@ export default function App() {
     const audio = audioRef.current;
     const onTime = () => setPlayer(p => ({ ...p, currentTime: audio.currentTime }));
     const onDuration = () => setPlayer(p => ({ ...p, duration: audio.duration || 0 }));
-    const onEnded = () => setPlayer(p => ({ ...p, isPlaying: false, currentTime: 0 }));
+    const onEnded = () => {
+      setPlayer(p => {
+        const idx = p.queue.findIndex(t => t.id === p.track?.id);
+        const next = idx >= 0 && idx < p.queue.length - 1 ? p.queue[idx + 1] : null;
+        if (next) return { ...p, track: next, isPlaying: true, currentTime: 0 };
+        return { ...p, isPlaying: false, currentTime: 0 };
+      });
+    };
     audio.addEventListener("timeupdate", onTime);
     audio.addEventListener("loadedmetadata", onDuration);
     audio.addEventListener("ended", onEnded);
@@ -80,7 +87,6 @@ export default function App() {
     };
   }, []);
 
-  // Swipe detection
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
@@ -106,8 +112,31 @@ export default function App() {
     setCurrentPage("playlists");
   };
 
-  const playTrack = (track: Track) => {
-    setPlayer(p => ({ ...p, track, isPlaying: true, currentTime: 0 }));
+  // Play a single track, keeping existing queue or setting a new one
+  const playTrack = (track: Track, queue?: Track[]) => {
+    setPlayer(p => ({ ...p, track, queue: queue ?? p.queue, isPlaying: true, currentTime: 0 }));
+  };
+
+  const skipNext = () => {
+    setPlayer(p => {
+      const idx = p.queue.findIndex(t => t.id === p.track?.id);
+      const next = idx >= 0 && idx < p.queue.length - 1 ? p.queue[idx + 1] : null;
+      if (!next) return p;
+      return { ...p, track: next, isPlaying: true, currentTime: 0 };
+    });
+  };
+
+  const skipPrev = () => {
+    setPlayer(p => {
+      if (p.currentTime > 3) {
+        audioRef.current.currentTime = 0;
+        return { ...p, currentTime: 0 };
+      }
+      const idx = p.queue.findIndex(t => t.id === p.track?.id);
+      const prev = idx > 0 ? p.queue[idx - 1] : null;
+      if (!prev) return p;
+      return { ...p, track: prev, isPlaying: true, currentTime: 0 };
+    });
   };
 
   const togglePlay = () => {
@@ -130,20 +159,14 @@ export default function App() {
       )}
 
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Desktop sidebar */}
         <div className="hidden md:flex">
           <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
         </div>
 
-        {/* Mobile sidebar overlay */}
         {sidebarOpen && (
-          <div
-            className="sidebar-overlay md:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
+          <div className="sidebar-overlay md:hidden" onClick={() => setSidebarOpen(false)} />
         )}
 
-        {/* Mobile sidebar drawer */}
         <div className={`sidebar-drawer md:hidden ${sidebarOpen ? "open" : ""}`}
           style={{ background: "var(--im-bg2, #111)" }}>
           <Sidebar
@@ -152,7 +175,6 @@ export default function App() {
           />
         </div>
 
-        {/* Main content */}
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
           {currentPage === "home" && (
             <HomePage
@@ -196,17 +218,17 @@ export default function App() {
         </main>
       </div>
 
-      {/* Player */}
       <div className="hidden md:block">
         <PlayerBar
           player={player}
           onTogglePlay={togglePlay}
           onVolumeChange={(v) => setPlayer(p => ({ ...p, volume: v }))}
           onSeek={seek}
+          onSkipNext={skipNext}
+          onSkipPrev={skipPrev}
         />
       </div>
 
-      {/* Mobile bottom nav + mini player */}
       <div className="md:hidden">
         <BottomNav
           currentPage={currentPage}

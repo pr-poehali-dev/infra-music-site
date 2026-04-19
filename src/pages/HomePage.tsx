@@ -52,20 +52,19 @@ export default function HomePage({ heroImg, onOpenMood, selectedMood, onNavigate
           background: "linear-gradient(160deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.75) 100%)"
         }} />
         <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-8">
-          <p className="text-xs font-medium mb-1 md:mb-2 uppercase tracking-widest"
-            style={{ color: "var(--im-yellow)" }}>
-            Добро пожаловать
-          </p>
           <h1 className="font-oswald text-2xl md:text-4xl font-bold text-white mb-3">
-            Музыка для<br className="md:hidden" /> твоего настроения
+            ИнфраМузыка
           </h1>
+          <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.6)" }}>
+            Музыка под твоё настроение
+          </p>
           <div className="flex gap-2 md:gap-3 flex-wrap">
             <button
               onClick={onOpenMood}
               className="glass-btn-primary px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-1.5"
             >
-              <Icon name="Sparkles" size={14} color="#000" />
-              Настроение
+              <Icon name="Music" size={14} color="#000" />
+              Подобрать музыку
             </button>
             <button
               onClick={() => onNavigate("focus")}
@@ -113,7 +112,7 @@ export default function HomePage({ heroImg, onOpenMood, selectedMood, onNavigate
       {/* Recent tracks */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-oswald text-lg md:text-xl font-semibold text-white">Недавно слушал</h2>
+          <h2 className="font-oswald text-lg md:text-xl font-semibold text-white">Недавно</h2>
           <button
             className="text-xs flex items-center gap-1 transition-opacity hover:opacity-70"
             style={{ color: "var(--im-yellow)" }}
