@@ -7,85 +7,95 @@ interface MoodModalProps {
 }
 
 const moods = [
-  { id: "energetic", emoji: "⚡", label: "Энергичное", desc: "Драйв и мотивация", color: "#f0a03e" },
-  { id: "calm", emoji: "🌊", label: "Спокойное", desc: "Релакс и умиротворение", color: "#3eb8f0" },
-  { id: "sad", emoji: "🌧", label: "Грустное", desc: "Задумчивость и рефлексия", color: "#7c8cf0" },
-  { id: "happy", emoji: "☀️", label: "Радостное", desc: "Позитив и веселье", color: "#f0e03e" },
-  { id: "focused", emoji: "🎯", label: "Концентрация", desc: "Фокус и продуктивность", color: "#7c5af0" },
-  { id: "romantic", emoji: "🌹", label: "Романтичное", desc: "Нежность и тепло", color: "#f05a8a" },
+  { id: "energetic", emoji: "⚡", label: "Энергия",     desc: "Драйв и мотивация" },
+  { id: "calm",      emoji: "🌊", label: "Спокойствие", desc: "Релакс" },
+  { id: "sad",       emoji: "🌧", label: "Грусть",      desc: "Рефлексия" },
+  { id: "happy",     emoji: "☀️", label: "Радость",     desc: "Позитив" },
+  { id: "focused",   emoji: "🎯", label: "Фокус",       desc: "Продуктивность" },
+  { id: "romantic",  emoji: "🌹", label: "Романтика",   desc: "Нежность" },
 ];
 
 const questions = [
-  "Как ты себя чувствуешь прямо сейчас?",
-  "Какую музыку хочется слушать?",
+  "Как ты себя чувствуешь?",
+  "Что хочется услышать?",
 ];
 
-export default function MoodModal({ onSelect, heroImg }: MoodModalProps) {
+export default function MoodModal({ onSelect }: MoodModalProps) {
   const [step, setStep] = useState(0);
-  const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
 
-  const handleSelect = (moodId: string) => {
-    setSelectedMood(moodId);
+  const handleSelect = (id: string) => {
+    setSelected(id);
     if (step < questions.length - 1) {
-      setTimeout(() => { setStep(s => s + 1); setSelectedMood(null); }, 400);
+      setTimeout(() => { setStep(s => s + 1); setSelected(null); }, 350);
     } else {
-      setTimeout(() => onSelect(moodId), 400);
+      setTimeout(() => onSelect(id), 350);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: "rgba(8,8,16,0.92)", backdropFilter: "blur(12px)" }}>
-
-      <div className="relative w-full max-w-lg mx-4 animate-scale-in">
-        {/* BG accent */}
-        <div className="absolute -inset-8 rounded-3xl opacity-30 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse, rgba(124,90,240,0.4) 0%, transparent 70%)" }} />
-
-        <div className="glass rounded-3xl p-8 relative">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, var(--im-purple), var(--im-blue))" }}>
-              <Icon name="Headphones" size={28} color="white" />
-            </div>
-            <h1 className="font-oswald text-3xl font-bold text-white mb-2">ИнфраМузыка</h1>
-            <p className="text-sm" style={{ color: "var(--im-text-muted)" }}>Персональный музыкальный подбор</p>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: "rgba(0,0,0,0.9)", backdropFilter: "blur(8px)" }}
+    >
+      <div className="w-full max-w-md animate-scale-in">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div
+            className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
+            style={{ background: "var(--im-yellow)" }}
+          >
+            <Icon name="Headphones" size={22} color="#000" />
           </div>
+          <h1 className="font-oswald text-2xl font-bold text-white mb-1">ИнфраМузыка</h1>
+          <p className="text-sm" style={{ color: "var(--im-text-muted)" }}>
+            Персональный подбор музыки
+          </p>
+        </div>
 
-          {/* Question */}
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-1">
-              {questions.map((_, i) => (
-                <div key={i} className="h-1 flex-1 rounded-full transition-all duration-500"
-                  style={{ background: i <= step ? "var(--im-purple)" : "rgba(255,255,255,0.1)" }} />
-              ))}
-            </div>
-            <p className="text-center font-medium text-lg text-white mt-4">{questions[step]}</p>
-          </div>
+        {/* Progress */}
+        <div className="flex gap-1.5 mb-5">
+          {questions.map((_, i) => (
+            <div
+              key={i}
+              className="h-0.5 flex-1 rounded-full transition-all duration-400"
+              style={{ background: i <= step ? "var(--im-yellow)" : "rgba(255,255,255,0.1)" }}
+            />
+          ))}
+        </div>
 
-          {/* Mood grid */}
-          <div className="grid grid-cols-3 gap-3">
-            {moods.map((mood) => (
+        <p className="text-center text-base font-medium text-white mb-5">
+          {questions[step]}
+        </p>
+
+        {/* Mood grid */}
+        <div className="grid grid-cols-3 gap-2.5">
+          {moods.map((mood) => {
+            const isSelected = selected === mood.id;
+            return (
               <button
                 key={mood.id}
                 onClick={() => handleSelect(mood.id)}
-                className={`glass-hover glass rounded-2xl p-4 text-center transition-all duration-200 ${
-                  selectedMood === mood.id ? "scale-95 opacity-70" : ""
-                }`}
-                style={selectedMood === mood.id ? { borderColor: mood.color, boxShadow: `0 0 20px ${mood.color}40` } : {}}
+                className="rounded-xl p-4 text-center transition-all duration-200 border"
+                style={{
+                  background: isSelected ? "var(--im-yellow-dim)" : "var(--im-surface)",
+                  borderColor: isSelected ? "var(--im-yellow)" : "var(--im-glass-border)",
+                  transform: isSelected ? "scale(0.96)" : "scale(1)",
+                }}
               >
-                <div className="text-3xl mb-2">{mood.emoji}</div>
-                <div className="text-white text-sm font-medium mb-0.5">{mood.label}</div>
-                <div className="text-xs" style={{ color: "var(--im-text-muted)" }}>{mood.desc}</div>
+                <div className="text-2xl mb-1.5">{mood.emoji}</div>
+                <div className="text-white text-sm font-medium leading-tight">{mood.label}</div>
+                <div className="text-xs mt-0.5 leading-tight" style={{ color: "var(--im-text-muted)" }}>
+                  {mood.desc}
+                </div>
               </button>
-            ))}
-          </div>
-
-          <p className="text-center text-xs mt-6" style={{ color: "var(--im-text-muted)" }}>
-            Шаг {step + 1} из {questions.length} · Ответь на вопросы и получи персональный плейлист
-          </p>
+            );
+          })}
         </div>
+
+        <p className="text-center text-xs mt-6" style={{ color: "var(--im-text-muted)" }}>
+          {step + 1} / {questions.length} — ответь, чтобы получить плейлист
+        </p>
       </div>
     </div>
   );
