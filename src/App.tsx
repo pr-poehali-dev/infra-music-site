@@ -7,8 +7,9 @@ import PlaylistsPage from "@/pages/PlaylistsPage";
 import FocusPage from "@/pages/FocusPage";
 import ProfilePage from "@/pages/ProfilePage";
 import BottomNav from "@/components/BottomNav";
+import SearchPage from "@/pages/SearchPage";
 
-export type Page = "home" | "playlists" | "focus" | "profile";
+export type Page = "home" | "playlists" | "focus" | "profile" | "search";
 
 export interface Track {
   id: number;
@@ -136,6 +137,12 @@ export default function App() {
             <ProfilePage
               selectedMood={selectedMood}
               onNavigate={setCurrentPage}
+              onOpenSidebar={() => setSidebarOpen(true)}
+            />
+          )}
+          {currentPage === "search" && (
+            <SearchPage
+              onPlayTrack={playTrack}
               onOpenSidebar={() => setSidebarOpen(true)}
             />
           )}

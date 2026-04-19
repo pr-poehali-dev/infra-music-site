@@ -1,5 +1,5 @@
 import Icon from "@/components/ui/icon";
-import { Page, PlayerState, Track } from "@/App";
+import { Page, PlayerState } from "@/App";
 
 interface BottomNavProps {
   currentPage: Page;
@@ -10,6 +10,7 @@ interface BottomNavProps {
 
 const navItems: { id: Page; label: string; icon: string }[] = [
   { id: "home",      label: "Главная",  icon: "Home" },
+  { id: "search",    label: "Поиск",    icon: "Search" },
   { id: "playlists", label: "Музыка",   icon: "Music2" },
   { id: "focus",     label: "Фокус",    icon: "Brain" },
   { id: "profile",   label: "Профиль",  icon: "User" },

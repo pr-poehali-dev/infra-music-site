@@ -8,6 +8,7 @@ interface SidebarProps {
 
 const navItems: { id: Page; label: string; icon: string }[] = [
   { id: "home",      label: "Главная",       icon: "Home" },
+  { id: "search",    label: "Поиск",         icon: "Search" },
   { id: "playlists", label: "Плейлисты",     icon: "Music2" },
   { id: "focus",     label: "Концентрация",  icon: "Brain" },
   { id: "profile",   label: "Профиль",       icon: "User" },
